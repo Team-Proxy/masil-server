@@ -1,0 +1,100 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.9'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.diffplug.spotless' version '6.24.0'
+}
+
+group = 'com.beyond'
+version = '0.0.1-SNAPSHOT'
+description = 'masil-be'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+	runtimeOnly 'com.h2database:h2'
+	runtimeOnly 'org.postgresql:postgresql'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+spotless {
+	java {
+		importOrder()         // import문 순서 정리
+		removeUnusedImports() // 안 쓰는 import문 자동 삭제
+		palantirJavaFormat()  // 구글포매터로 코드 변환
+		targetExclude("src/main/generated/**/*.java") // querydsl 파일들 대상 제외
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+// Querydsl 설정
+def querydslSrcDir = 'src/main/generated'
+
+// querydsl QClass 파일 생성 위치 지정
+tasks.withType(JavaCompile).configureEach {
+	options.getGeneratedSourceOutputDirectory().set(file(querydslSrcDir))
+}
+
+// java source set 에 querydsl QClass 위치 추가
+sourceSets {
+	main.java.srcDirs += [querydslSrcDir]
+	test.java.srcDirs += [querydslSrcDir]
+}
+
+// gradle clean 시에 QClass 디렉토리 삭제
+clean {
+	delete file(querydslSrcDir)
+}
+
+tasks.register('updateGitHooks', Copy) {
+	from 'scripts/pre-commit'        // 현재 폴더의 scripts 디렉터리
+	into '../.git/hooks'              // 실제 git hooks 폴더 위치
+}
+
+tasks.register('makeGitHooksExecutable') {
+	dependsOn updateGitHooks
+	doLast {
+		def osName = System.getProperty("os.name").toLowerCase()
+		if (osName.contains("windows")) {
+			println "Skipping chmod (Windows detected) — Git hooks assumed already executable."
+		} else {
+			def execOps = getServices().get(org.gradle.process.ExecOperations.class)
+			execOps.exec {
+				commandLine 'chmod', '+x', '.git/hooks/pre-commit'
+			}
+		}
+	}
+}
+
+if (!System.getenv().containsKey('DOCKER_BUILD')) {
+	compileJava.dependsOn makeGitHooksExecutable
+}
+
