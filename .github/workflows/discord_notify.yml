@@ -1,0 +1,126 @@
+name: Discord Notifications (masil-server)
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened, closed]
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    env:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      EVENT: ${{ github.event_name }}
+      ACTOR: ${{ github.actor }}
+
+      ISSUE_TITLE: ${{ github.event.issue.title }}
+      ISSUE_URL: ${{ github.event.issue.html_url }}
+
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      PR_BRANCH: ${{ github.head_ref }}
+      BASE_BRANCH: ${{ github.base_ref }}
+      PR_URL: ${{ github.event.pull_request.html_url }}
+      PR_MERGED: ${{ github.event.pull_request.merged }}
+
+      COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+      COMMIT_URL: ${{ github.event.head_commit.url }}
+      BRANCH: ${{ github.ref_name }}
+
+    steps:
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Send Discord Notification
+        run: |
+          echo "Triggered event: $EVENT"
+
+          COMMIT_MESSAGE=${COMMIT_MESSAGE:-"(no commit message)"}
+          PR_BRANCH=${PR_BRANCH:-"(unknown branch)"}
+          BASE_BRANCH=${BASE_BRANCH:-"(unknown base)"}
+
+          if [ "$EVENT" = "issues" ]; then
+            SANITIZED_TITLE=$(printf "%b" "$ISSUE_TITLE" | sed 's/^/• /; s/\n/\n• /g')
+
+            JSON=$(jq -n \
+              --arg title "[masil] New Issue" \
+              --arg desc "$SANITIZED_TITLE" \
+              --arg url "$ISSUE_URL" \
+              --arg actor "$ACTOR" \
+              '{
+                username: "GitHub Actions",
+                embeds: [{
+                  title: $title,
+                  description: $desc,
+                  url: $url,
+                  color: 3447003,
+                  author: { name: $actor }
+                }]
+              }')
+
+          elif [ "$EVENT" = "pull_request" ]; then
+            if [ "$PR_MERGED" = "true" ]; then
+              DESC="**$PR_TITLE**\nMerged: \`$PR_BRANCH → $BASE_BRANCH\`\nBy: $ACTOR"
+              COLOR=3066993
+              TITLE=" [masil] PR Merged"
+            else
+              DESC="**$PR_TITLE**\nFrom: \`$PR_BRANCH\`\nTo: \`$BASE_BRANCH\`"
+              COLOR=15105570
+              TITLE="[masil] PR Opened"
+            fi
+
+            SANITIZED_DESC=$(printf "%b" "$DESC" | sed 's/^/• /; s/\n/\n• /g')
+
+            JSON=$(jq -n \
+              --arg title "$TITLE" \
+              --arg desc "$SANITIZED_DESC" \
+              --arg url "$PR_URL" \
+              --arg actor "$ACTOR" \
+              --argjson color $COLOR \
+              '{
+                username: "GitHub Actions",
+                embeds: [{
+                  title: $title,
+                  description: $desc,
+                  url: $url,
+                  color: $color,
+                  author: { name: $actor }
+                }]
+              }')
+
+          elif [ "$EVENT" = "push" ]; then
+            if echo "$COMMIT_MESSAGE" | grep -qiE "^Merge pull request|^Merge branch|\(#\d+\)"; then
+              echo "Skipping merge/squash commit push notification"
+              exit 0
+            fi
+
+            SANITIZED_COMMIT=$(printf "%b" "$COMMIT_MESSAGE" | sed 's/^/• /; s/\n/\n• /g')
+
+            JSON=$(jq -n \
+              --arg title " [masil] Push to \`$BRANCH\`" \
+              --arg desc "$SANITIZED_COMMIT" \
+              --arg url "$COMMIT_URL" \
+              --arg actor "$ACTOR" \
+              '{
+                username: "GitHub Actions",
+                embeds: [{
+                  title: $title,
+                  description: $desc,
+                  url: $url,
+                  color: 5814783,
+                  author: { name: $actor }
+                }]
+              }')
+          fi
+
+          if [ -n "$JSON" ]; then
+            curl -H "Content-Type: application/json" \
+                 -d "$JSON" \
+                 "$DISCORD_WEBHOOK_URL"
+          fi
