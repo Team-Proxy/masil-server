@@ -1,4 +1,3 @@
-
 package com.beyond.masilbe.common.entity;
 
 import jakarta.persistence.Column;
@@ -24,46 +23,44 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", columnDefinition = "bigint")
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", columnDefinition = "bigint")
+    private Long id;
 
-  @Comment("생성자")
-  @CreatedBy
-  @Column(name = "created_by", nullable = false, updatable = false)
-  private Long createdBy = 0L;
+    @Comment("생성자")
+    @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false)
+    private Long createdBy = 0L;
 
-  @Comment("생성 시각")
-  @CreatedDate
-  @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP(6)")
-  private Instant createdAt;
+    @Comment("생성 시각")
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP(6)")
+    private Instant createdAt;
 
-  @Comment("수정자")
-  @LastModifiedBy
-  @Column(name = "updated_by", nullable = false)
-  private Long updatedBy = 0L;
+    @Comment("수정자")
+    @LastModifiedBy
+    @Column(name = "updated_by", nullable = false)
+    private Long updatedBy = 0L;
 
-  @Comment("수정 시각")
-  @LastModifiedDate
-  @Column(name = "updated_at", nullable = false, columnDefinition = "TIMESTAMP(6)")
-  private Instant updatedAt;
+    @Comment("수정 시각")
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false, columnDefinition = "TIMESTAMP(6)")
+    private Instant updatedAt;
 
-  @Comment("삭제자")
-  @Column(name = "deleted_by")
-  private Long deletedBy;
+    @Comment("삭제자")
+    @Column(name = "deleted_by")
+    private Long deletedBy;
 
-  @Comment("삭제 시각")
-  @Column(name = "deleted_at", columnDefinition = "TIMESTAMP(6)")
-  private Instant deletedAt;
+    @Comment("삭제 시각")
+    @Column(name = "deleted_at", columnDefinition = "TIMESTAMP(6)")
+    private Instant deletedAt;
 
-  public void delete(final Long deleterId) {
-    if (this.deletedAt != null) {
-      return; // TODO: 혹은 "이미 삭제된 데이터입니다." 같은 예외처리
+    public void delete(final Long deleterId) {
+        if (this.deletedAt != null) {
+            return; // TODO: 혹은 "이미 삭제된 데이터입니다." 같은 예외처리
+        }
+        this.deletedAt = Instant.now();
+        this.deletedBy = deleterId;
     }
-    this.deletedAt = Instant.now();
-    this.deletedBy = deleterId;
-  }
 }
-
-

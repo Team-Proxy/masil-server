@@ -1,13 +1,13 @@
-//package com.beyond.masilbe.config;
+// package com.beyond.masilbe.config;
 //
-//import com.beyond.masilbe.security.CustomUserDetails;
-//import java.util.Optional;
-//import org.springframework.data.domain.AuditorAware;
-//import org.springframework.lang.NonNull;
-//import org.springframework.security.core.Authentication;
-//import org.springframework.security.core.context.SecurityContextHolder;
+// import com.beyond.masilbe.security.CustomUserDetails;
+// import java.util.Optional;
+// import org.springframework.data.domain.AuditorAware;
+// import org.springframework.lang.NonNull;
+// import org.springframework.security.core.Authentication;
+// import org.springframework.security.core.context.SecurityContextHolder;
 //
-//public class AuditorAwareImpl implements AuditorAware<Long> {
+// public class AuditorAwareImpl implements AuditorAware<Long> {
 //
 //    @Override
 //    @NonNull
@@ -30,4 +30,4 @@
 //        // 인증은 있으나 사용자 타입이 다른 경우
 //        return Optional.of(0L);
 //    }
-//}
+// }
