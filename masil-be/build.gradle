@@ -34,7 +34,10 @@ dependencies {
     // security 임시 비활성화
     //implementation 'org.springframework.boot:spring-boot-starter-security'
 
-    // Database Drivers
+	// Swagger
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+
+	// Database Drivers
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'com.h2database:h2'
 
@@ -109,7 +112,7 @@ tasks.register('makeGitHooksExecutable') {
 		} else {
 			def execOps = getServices().get(org.gradle.process.ExecOperations.class)
 			execOps.exec {
-				commandLine 'chmod', '+x', '.git/hooks/pre-commit'
+				commandLine 'chmod', '+x', '../.git/hooks/pre-commit'
 			}
 		}
 	}
