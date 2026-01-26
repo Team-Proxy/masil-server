@@ -23,11 +23,9 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Transactional
     public CreateUserResponseDto createUser(final CreateUserRequestDto request) {
 
-        // 임시 비밀번호 생성
-        final String tempPassword = PasswordGenerator.generate();
-        final String encrypted = passwordEncoder.encode(tempPassword);
+        final String encryptedPassword = passwordEncoder.encode(request.getPassword());
 
-        Users users = Users.create(request, encrypted);
+        Users users = Users.create(request, encryptedPassword);
         Users saved = userWriter.save(users);
 
         return CreateUserResponseDto.fromEntity(saved);
