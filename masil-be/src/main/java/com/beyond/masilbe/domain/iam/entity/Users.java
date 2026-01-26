@@ -21,7 +21,7 @@ import org.hibernate.annotations.SQLRestriction;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(
         name = "users",
-        indexes = {@Index(name = "idx_user_dpt_id", columnList = "dpt_id")})
+        indexes = {@Index(name = "uk_users_email", columnList = "email", unique = true)})
 @AttributeOverride(name = "id", column = @Column(name = "user_id"))
 @SQLRestriction("deleted_at IS NULL")
 public class Users extends BaseEntity {
