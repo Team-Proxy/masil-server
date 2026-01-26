@@ -4,7 +4,6 @@ import com.beyond.masilbe.domain.iam.dto.user.request.CreateUserRequestDto;
 import com.beyond.masilbe.domain.iam.dto.user.response.CreateUserResponseDto;
 import com.beyond.masilbe.domain.iam.entity.Users;
 import com.beyond.masilbe.domain.iam.support.user.UserWriter;
-import com.beyond.masilbe.security.PasswordGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
