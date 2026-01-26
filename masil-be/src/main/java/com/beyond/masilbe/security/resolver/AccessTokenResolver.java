@@ -1,7 +1,7 @@
 package com.beyond.masilbe.security.resolver;
 
-import com.beyond.qiin.common.exception.BaseException;
-import com.beyond.qiin.common.exception.CommonErrorCode;
+import com.beyond.masilbe.common.exception.BaseException;
+import com.beyond.masilbe.common.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;

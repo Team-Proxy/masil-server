@@ -20,3 +20,7 @@ spring:
     locations:
       - classpath:db/migration
       - classpath:db/seed/local
+
+redis:
+  host: localhost
+  port: 6379

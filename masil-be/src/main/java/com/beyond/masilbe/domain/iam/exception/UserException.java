@@ -24,7 +24,6 @@ public class UserException extends BaseException {
         return new UserException(UserErrorCode.INVALID_PASSWORD);
     }
 
-
     // ErrorCode 내부에 정의
     @Getter
     public enum UserErrorCode implements ErrorCode {
