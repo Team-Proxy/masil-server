@@ -1,6 +1,5 @@
 package com.beyond.masilbe.security.jwt;
 
-import com.beyond.masilbe.domain.auth.exception.AuthException;
 import com.beyond.masilbe.security.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -38,32 +37,29 @@ public class JwtFilter extends OncePerRequestFilter {
             final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain)
             throws ServletException, IOException {
 
-        final String header = request.getHeader("Authorization");
-        final boolean hasHeader = header != null;
-        final boolean isBearer = hasHeader && header.startsWith("Bearer ");
-
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            response.setStatus(HttpServletResponse.SC_OK);
             filterChain.doFilter(request, response);
             return;
         }
 
-        log.debug(
-                "[JwtFilter] 요청 URI: {}, hasAuthorization={}, authPrefix={}",
-                request.getRequestURI(),
-                hasHeader,
-                isBearer ? "Bearer" : "none");
-
-        // Authorization 헤더 없거나 Bearer 아니면 바로 패스
-        if (!isBearer) {
+        final String header = request.getHeader(JwtConstants.HEADER_AUTHORIZATION);
+        if (header == null || !header.startsWith(JwtConstants.TOKEN_PREFIX)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        final String token = header.substring(7);
+        final String token = header.substring(JwtConstants.TOKEN_PREFIX_LENGTH).trim();
+
+        if (token.isEmpty()) {
+            SecurityContextHolder.clearContext();
+            authenticationEntryPoint.commence(
+                    request, response, new InsufficientAuthenticationException("Empty JWT token"));
+            return;
+        }
 
         // 블랙리스트 토큰이면 인증 없이 다음 필터로 넘김
         if (redisTokenRepository.isBlacklisted(token)) {
+            SecurityContextHolder.clearContext();
             authenticationEntryPoint.commence(
                     request, response, new InsufficientAuthenticationException("블랙리스트 처리된 토큰입니다."));
             return;
@@ -73,34 +69,44 @@ public class JwtFilter extends OncePerRequestFilter {
             Claims claims = jwtTokenProvider.getClaims(token);
 
             Long userId = Long.valueOf(claims.getSubject());
-            String role = claims.get(JwtConstants.CLAIM_ROLE, String.class);
             String email = claims.get(JwtConstants.CLAIM_EMAIL, String.class);
+
+            String role = claims.get(JwtConstants.CLAIM_ROLE, String.class);
             List<String> permissions = claims.get(JwtConstants.CLAIM_PERMISSIONS, List.class);
 
             List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-            authorities.add(new SimpleGrantedAuthority(role));
-            permissions.forEach(p -> authorities.add(new SimpleGrantedAuthority(p)));
+
+            // role은 optional
+            if (role != null && !role.isBlank()) {
+                authorities.add(new SimpleGrantedAuthority(role));
+            }
+
+            // permissions도 optional
+            if (permissions != null) {
+                permissions.forEach(p -> authorities.add(new SimpleGrantedAuthority(p)));
+            }
 
             CustomUserDetails userDetails = new CustomUserDetails(userId, email, authorities);
 
-            // 인증 객체 설정
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        } catch (final ExpiredJwtException e) { // Access Token 만료 시
-            log.warn("[JwtFilter] AccessToken expired: {}", e.getMessage());
-            throw AuthException.tokenExpired();
+            // 정상 인증 → 다음 필터
+            filterChain.doFilter(request, response);
 
-        } catch (final AuthException e) {
-            log.warn("[JwtFilter] Token processing failed: {}", e.getMessage());
-            throw e;
-        } catch (final Exception e) {
-            log.warn("[JwtFilter] Token processing failed: {}", e.getMessage());
-            throw AuthException.unauthorized();
+        } catch (ExpiredJwtException e) {
+            log.warn("[JwtFilter] Expired JWT token: {}", e.getMessage());
+            SecurityContextHolder.clearContext();
+            authenticationEntryPoint.commence(
+                    request, response, new InsufficientAuthenticationException("Expired JWT token"));
+
+        } catch (Exception e) {
+            log.warn("[JwtFilter] Invalid JWT token", e);
+            SecurityContextHolder.clearContext();
+            authenticationEntryPoint.commence(
+                    request, response, new InsufficientAuthenticationException("Invalid JWT token"));
         }
-
-        filterChain.doFilter(request, response);
     }
 }
