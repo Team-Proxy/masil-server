@@ -1,0 +1,35 @@
+package com.beyond.masilbe.security.resolver;
+
+import com.beyond.masilbe.common.exception.BaseException;
+import com.beyond.masilbe.common.exception.CommonErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
+
+// TODO: 모든 컨트롤러가 @CurrentUser 기반으로 변경되면 @AccessToken 제거
+@Component
+@RequiredArgsConstructor
+public class AccessTokenResolver implements HandlerMethodArgumentResolver {
+
+    @Override
+    public boolean supportsParameter(final MethodParameter parameter) {
+        return parameter.hasParameterAnnotation(AccessToken.class)
+                && parameter.getParameterType().equals(String.class);
+    }
+
+    @Override
+    public Object resolveArgument(
+            final MethodParameter parameter,
+            final ModelAndViewContainer mavContainer,
+            final NativeWebRequest webRequest,
+            final WebDataBinderFactory binderFactory) {
+
+        throw new BaseException(
+                CommonErrorCode.UNPROCESSABLE_ENTITY,
+                "@AccessToken is no longer supported. Controllers must not depend on raw access tokens.") {};
+    }
+}
