@@ -38,11 +38,15 @@ public class Users extends BaseEntity {
     @Column(name = "password", length = 255, nullable = false)
     private String password;
 
+    @Column(name = "age")
+    private Integer age;
+
     public static Users create(final CreateUserRequestDto request, final String encryptedPassword) {
         return Users.builder()
                 .userName(request.getUserName())
                 .nickname(request.getNickname())
                 .email(request.getEmail())
+                .age(request.getAge())
                 .password(encryptedPassword)
                 .build();
     }

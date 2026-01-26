@@ -24,4 +24,6 @@ public class CreateUserRequestDto {
 
     @NotBlank
     private String password;
+
+    private Integer age;
 }
