@@ -6,7 +6,7 @@ public final class SecurityWhitelist {
     public static final String[] INTERNAL = {"/internal/**"};
 
     // 로그인 / 리프레시 등 인증 없이 접근 가능한 API
-    public static final String[] AUTH = {"/api/auth/**","/api/users"};
+    public static final String[] AUTH = {"/api/auth/**", "/api/users"};
 
     public static final String[] SSE = {"/api/sse/**"};
 
