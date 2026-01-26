@@ -58,7 +58,9 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(INTERNAL)
                         .permitAll()
-                        .anyRequest()
+                        .requestMatchers(SWAGGER)
+                        .permitAll()
+                    .anyRequest()
                         .authenticated())
                 .anonymous(Customizer.withDefaults())
                 .exceptionHandling(e -> {
