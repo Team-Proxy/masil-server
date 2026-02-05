@@ -1,12 +1,12 @@
 package com.beyond.masilbe.domain.iam.repository;
 
-import com.beyond.masilbe.domain.iam.entity.Users;
+import com.beyond.masilbe.domain.iam.entity.Roles;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserJpaRepository extends JpaRepository<Users, Long> {
+public interface RoleJpaRepository extends JpaRepository<Roles, Long> {
 
-    Optional<Users> findByEmail(final String email);
+    Optional<Roles> findByRoleName(final String roleName);
 }
