@@ -38,13 +38,13 @@ public class RolePermissions {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private Roles roles;
+    private Roles role;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private Permissions permissions;
+    private Permissions permission;
 
-    public static RolePermissions create(final Roles roles, final Permissions permissions) {
-        return RolePermissions.builder().roles(roles).permissions(permissions).build();
+    public static RolePermissions create(final Roles role, final Permissions permission) {
+        return RolePermissions.builder().role(role).permission(permission).build();
     }
 }
