@@ -8,6 +8,7 @@ import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -22,7 +23,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Table(name = "role_permissions")
+@Table(
+        name = "role_permissions",
+        indexes = {
+            @Index(name = "idx_role_permissions_role", columnList = "role_id"),
+            @Index(name = "idx_role_permissions_permission", columnList = "permission_id")
+        })
 public class RolePermissions {
 
     @Id

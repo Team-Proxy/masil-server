@@ -4,6 +4,7 @@ import com.beyond.masilbe.common.entity.BaseEntity;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,9 @@ import org.hibernate.annotations.SQLRestriction;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Table(name = "permissions")
+@Table(
+        name = "permissions",
+        indexes = {@Index(name = "uk_permissions_name", columnList = "permission_name", unique = true)})
 @AttributeOverride(name = "id", column = @Column(name = "permission_id"))
 @SQLRestriction("deleted_at IS NULL")
 public class Permissions extends BaseEntity {
