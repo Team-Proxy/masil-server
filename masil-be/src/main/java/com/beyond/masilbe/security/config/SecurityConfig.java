@@ -61,7 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(SWAGGER)
                         .permitAll()
                         .anyRequest()
-                        .authenticated())
+                        .permitAll())
                 .anonymous(Customizer.withDefaults())
                 .exceptionHandling(e -> {
                     e.authenticationEntryPoint(authenticationEntryPoint);
